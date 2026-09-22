@@ -39,7 +39,7 @@ void main() {
     test('raises the three required violations', () {
       expect(
         idsOf(flags),
-        containsAll<String>([
+        containsAll([
           RuleIds.automaticServiceCharge,
           RuleIds.gstOnServiceCharge,
           RuleIds.gstSlabMismatch,
@@ -258,7 +258,7 @@ void main() {
 
       expect(
         idsOf(engine.evaluate(bill)),
-        containsAll<String>([
+        containsAll([
           RuleIds.automaticServiceCharge,
           RuleIds.gstOnServiceCharge,
           RuleIds.gstSlabMismatch,
