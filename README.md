@@ -7,6 +7,10 @@
 ![Tests](https://img.shields.io/badge/tests-27%20passing-2A9D8F)
 ![Processing](https://img.shields.io/badge/processing-100%25%20on--device-1B3A5C)
 
+### ▶ [**A short working example →**](https://bill-compliance-scanner.netlify.app/)
+
+A brief browser walkthrough the team put together in place of a video, showing the four checks running on a sample bill. The Android app in this repository is the full implementation.
+
 ---
 
 ## The problem
@@ -113,6 +117,10 @@ Both printable receipts in [`demo/`](demo/) are asserted to parse through the **
 
 ## Try it in 60 seconds
 
+**A quick look, no install:** a [short working example](https://bill-compliance-scanner.netlify.app/) in the browser shows the four checks running on a sample bill.
+
+**The app itself:**
+
 ```bash
 flutter pub get
 flutter test      # 27 tests, no device needed
@@ -151,7 +159,13 @@ lib/
 
 `ExplanationService` has two implementations behind one interface. `TemplateExplanationService` composes the findings into a single counter-ready paragraph — deterministic, instant, always available. `LocalLlmExplanationService` is wired to the same interface and currently delegates to it.
 
-**No on-device model is bundled, and that is deliberate.** A language model must never decide whether a bill is unlawful — that is the rule engine's job, and it has to be auditable, deterministic and defensible in front of a restaurant manager. An LLM's only legitimate role here is rephrasing findings the engine already made. That is a genuine improvement in tone, and a poor use of the last hours before a deadline. The interface is ready when the improvement is worth it.
+To be precise about where machine learning does and does not belong here:
+
+- **On-device ML reads the bill.** Text recognition runs through ML Kit on the device, and moving to a quantized model on the NPU is the natural next step for accuracy and speed.
+- **Deterministic code decides the verdict.** No model, local or remote, judges whether a bill is unlawful. That has to be auditable, reproducible and defensible in front of a restaurant manager — "the model thought so" is not something you can say at a billing counter, and it is not something a consumer forum would accept.
+- **A language model's only legitimate role is rephrasing findings the engine already made.** That is a real improvement in tone, and a poor use of the hours before a deadline. The interface is ready when the improvement is worth it.
+
+This is why the app can show you the exact rule, the exact arithmetic, and the exact citation behind every flag.
 
 ---
 
