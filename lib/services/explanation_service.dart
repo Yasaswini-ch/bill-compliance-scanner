@@ -75,8 +75,11 @@ class TemplateExplanationService implements ExplanationService {
     ];
 
     for (var i = 0; i < ordered.length; i++) {
-      buffer.write(_connector(i));
-      buffer.write(ordered[i].explanation);
+      final (text, continuesSentence) = _connector(i);
+      buffer.write(text);
+      buffer.write(continuesSentence
+          ? _openLowercase(ordered[i].explanation)
+          : ordered[i].explanation);
       buffer.write(' ');
     }
 
@@ -91,18 +94,34 @@ class TemplateExplanationService implements ExplanationService {
     return buffer.toString().replaceAll(RegExp(r'\s+'), ' ').trim();
   }
 
-  String _connector(int index) {
+  /// The joining phrase for the flag at [index], and whether that phrase
+  /// leaves the sentence open — in which case the explanation that follows
+  /// must not start with a capital.
+  (String, bool) _connector(int index) {
     switch (index) {
       case 0:
-        return '';
+        return ('', false);
       case 1:
-        return 'On top of that, ';
+        return ('On top of that, ', true);
       case 2:
-        return 'There is also a further problem. ';
+        return ('There is also a further problem. ', false);
       default:
-        return 'Finally, ';
+        return ('Finally, ', true);
     }
   }
+
+  /// Lowercases the opening word so it reads as a continuation, while
+  /// leaving acronyms intact — "The GSTIN" becomes "the GSTIN", but "GST of
+  /// ₹105.60" is left alone.
+  String _openLowercase(String text) {
+    if (text.isEmpty) return text;
+    if (text.length > 1 && _isUpperCase(text[1])) return text;
+    return text[0].toLowerCase() + text.substring(1);
+  }
+
+  bool _isUpperCase(String character) =>
+      character == character.toUpperCase() &&
+      character != character.toLowerCase();
 
   String _callToAction(ComplianceReport report) {
     final hasServiceChargeFlag =
