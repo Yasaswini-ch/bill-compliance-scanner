@@ -1,0 +1,20 @@
+UDUPI SRI KRISHNA BHAVAN
+45 Jayanagar 4th Block, Bengaluru 560041
+GSTIN: 29AABCU9603R1ZJ
+Bill No: 1183        Table: 4
+Date: 22/09/2026     Time: 13:20
+----------------------------------------
+Item                   Qty       Amount
+----------------------------------------
+Masala Dosa             2        260.00
+Filter Coffee           2        120.00
+Paneer Butter Masala    1        320.00
+Butter Naan             2        150.00
+----------------------------------------
+Sub Total                        850.00
+CGST 2.5%                         21.25
+SGST 2.5%                         21.25
+----------------------------------------
+Grand Total                      892.50
+----------------------------------------
+Thank you! Visit again

@@ -1,0 +1,21 @@
+SPICE GARDEN RESTAURANT
+12 MG Road, Bengaluru 560001
+GSTIN: 27AAQCS12E4M1ZP
+Bill No: 4472        Table: 7
+Date: 22/09/2026     Time: 20:45
+----------------------------------------
+Item                   Qty       Amount
+----------------------------------------
+Chicken Biryani         2        560.00
+Mutton Rogan Josh       1        420.00
+Garlic Naan             3        180.00
+Gulab Jamun             2         40.00
+----------------------------------------
+Sub Total                       1200.00
+Service Charge 10%               120.00
+CGST 4%                           52.80
+SGST 4%                           52.80
+----------------------------------------
+Grand Total                     1425.60
+----------------------------------------
+Thank you! Visit again
