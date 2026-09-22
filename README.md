@@ -17,7 +17,7 @@ A brief browser walkthrough the team put together in place of a video, showing t
 
 In July 2022, the Central Consumer Protection Authority **banned restaurants from adding a service charge automatically**. Restaurants challenged it. In **March 2025, the Delhi High Court upheld the ban** and dismissed the petitions.
 
-Three and a half years later, it is still on the bill almost everywhere.
+Four years on, it is still on the bill almost everywhere.
 
 The charge itself is only part of it. The more expensive habit is quieter: restaurants add a 10% service charge, then calculate **GST on the inflated total**, taxing a charge that is not a taxable supply in the first place. Every one of those bills carries two violations, and the second one is invisible unless you do arithmetic at the counter while a queue forms behind you.
 
@@ -155,7 +155,7 @@ lib/
 
 ---
 
-## On the LLM question
+## Where machine learning belongs — and where it doesn't
 
 `ExplanationService` has two implementations behind one interface. `TemplateExplanationService` composes the findings into a single counter-ready paragraph — deterministic, instant, always available. `LocalLlmExplanationService` is wired to the same interface and currently delegates to it.
 
@@ -163,7 +163,7 @@ To be precise about where machine learning does and does not belong here:
 
 - **On-device ML reads the bill.** Text recognition runs through ML Kit on the device, and moving to a quantized model on the NPU is the natural next step for accuracy and speed.
 - **Deterministic code decides the verdict.** No model, local or remote, judges whether a bill is unlawful. That has to be auditable, reproducible and defensible in front of a restaurant manager — "the model thought so" is not something you can say at a billing counter, and it is not something a consumer forum would accept.
-- **A language model's only legitimate role is rephrasing findings the engine already made.** That is a real improvement in tone, and a poor use of the hours before a deadline. The interface is ready when the improvement is worth it.
+- **A language model's only legitimate role is rephrasing findings the engine already made.** That is a real improvement in tone, and a lower priority than the detection itself. The interface is ready for it when it earns its place.
 
 This is why the app can show you the exact rule, the exact arithmetic, and the exact citation behind every flag.
 
