@@ -24,6 +24,16 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
   Future<void>? _initFuture;
   String? _cameraError;
   bool _capturing = false;
+  bool _switching = false;
+
+  /// Cameras are enumerated once and reused, so flipping does not pay the
+  /// cost of re-querying the platform each time.
+  List<CameraDescription> _cameras = const [];
+  CameraLensDirection _lens = CameraLensDirection.back;
+
+  /// Only offer the flip control when there is actually something to flip to.
+  bool get _canSwitchLens =>
+      _cameras.map((c) => c.lensDirection).toSet().length > 1;
 
   @override
   void initState() {
@@ -45,35 +55,55 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
     if (controller == null || !controller.value.isInitialized) return;
 
     if (state == AppLifecycleState.inactive) {
+      // Null the field as well as disposing, so resuming cannot dispose the
+      // same controller twice.
+      _controller = null;
       controller.dispose();
     } else if (state == AppLifecycleState.resumed) {
       _initCamera();
     }
   }
 
-  Future<void> _initCamera() async {
+  /// Initialises (or re-initialises) the preview on the requested lens,
+  /// defaulting to whichever lens is currently selected.
+  Future<void> _initCamera({CameraLensDirection? lens}) async {
     try {
-      final cameras = await availableCameras();
-      if (cameras.isEmpty) {
+      if (_cameras.isEmpty) {
+        _cameras = await availableCameras();
+      }
+      if (_cameras.isEmpty) {
         setState(() => _cameraError =
             'No camera found on this device. Use "Load from gallery" or Demo Mode.');
         return;
       }
 
-      final back = cameras.firstWhere(
-        (c) => c.lensDirection == CameraLensDirection.back,
-        orElse: () => cameras.first,
+      final target = lens ?? _lens;
+      final camera = _cameras.firstWhere(
+        (c) => c.lensDirection == target,
+        orElse: () => _cameras.first,
       );
 
+      // Release the previous preview before opening another one; Android
+      // will not hand out a second handle to the same sensor.
+      final previous = _controller;
+      _controller = null;
+      await previous?.dispose();
+
       final controller = CameraController(
-        back,
+        camera,
         ResolutionPreset.high,
         enableAudio: false,
         imageFormatGroup: ImageFormatGroup.jpeg,
       );
 
       final future = controller.initialize();
+      if (!mounted) {
+        await future;
+        await controller.dispose();
+        return;
+      }
       setState(() {
+        _lens = camera.lensDirection;
         _controller = controller;
         _initFuture = future;
         _cameraError = null;
@@ -83,9 +113,24 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
     } catch (e) {
       // A camera failure must not dead-end the demo: gallery and demo mode
       // both remain available.
-      setState(() => _cameraError =
-          'Camera unavailable ($e). Use "Load from gallery" or Demo Mode.');
+      if (mounted) {
+        setState(() => _cameraError =
+            'Camera unavailable ($e). Use "Load from gallery" or Demo Mode.');
+      }
     }
+  }
+
+  /// Flips between the rear and front lens.
+  Future<void> _switchLens() async {
+    if (_switching || _capturing || !_canSwitchLens) return;
+    setState(() => _switching = true);
+
+    final next = _lens == CameraLensDirection.back
+        ? CameraLensDirection.front
+        : CameraLensDirection.back;
+    await _initCamera(lens: next);
+
+    if (mounted) setState(() => _switching = false);
   }
 
   Future<void> _capture() async {
@@ -401,8 +446,21 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
                 child: CameraPreview(controller),
               ),
             ),
-            const FramingOverlay(
-                hint: 'Fit the whole bill inside the frame'),
+            FramingOverlay(
+              hint: _lens == CameraLensDirection.front
+                  ? 'Front camera — hold the bill up to the screen'
+                  : 'Fit the whole bill inside the frame',
+            ),
+            if (_canSwitchLens)
+              Positioned(
+                top: 16,
+                right: 16,
+                child: _LensToggle(
+                  lens: _lens,
+                  busy: _switching,
+                  onPressed: _switchLens,
+                ),
+              ),
           ],
         );
       },
@@ -434,6 +492,56 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
               onPressed: _openDemoSheet,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Rear/front lens toggle, overlaid on the preview.
+class _LensToggle extends StatelessWidget {
+  final CameraLensDirection lens;
+  final bool busy;
+  final VoidCallback onPressed;
+
+  const _LensToggle({
+    required this.lens,
+    required this.busy,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isFront = lens == CameraLensDirection.front;
+
+    return Semantics(
+      button: true,
+      label: isFront ? 'Switch to rear camera' : 'Switch to front camera',
+      child: Material(
+        color: Colors.black.withValues(alpha: 0.55),
+        shape: const CircleBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: busy ? null : onPressed,
+          child: SizedBox(
+            width: 48,
+            height: 48,
+            child: busy
+                ? const Padding(
+                    padding: EdgeInsets.all(14),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      valueColor: AlwaysStoppedAnimation(Colors.white),
+                    ),
+                  )
+                : Icon(
+                    isFront
+                        ? Icons.camera_rear_rounded
+                        : Icons.camera_front_rounded,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+          ),
         ),
       ),
     );
